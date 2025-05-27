@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Resultado - {{ team1.name }} vs {{ team2.name }}{% endblock %}
+
+{% block content %}
+    <h1>Registrar Resultado da Partida</h1>
+    <h2>{{ competition.name }}</h2>
+    {% if match.group_id %}
+        {% set group = get_group(match.group_id) %}
+        <p>Grupo: {{ group.name if group else 'Desconhecido' }}</p>
+    {% elif match.knockout_round %}
+        <p>Fase Eliminatória: {{ match.knockout_round }}</p>
+    {% endif %}
+
+    <form method="post" id="result-form">
+        <p><strong>{{ team1.name }}</strong> vs <strong>{{ team2.name }}</strong></p>
+        
+        <label for="score1">Placar {{ team1.name }}:</label>
+        <input type="number" id="score1" name="score1" min="0" required value="{{ request.form.score1 if request.form.score1 is not none else match.team1_score if match.team1_score is not none else '' }}">
+        
+        <label for="score2">Placar {{ team2.name }}:</label>
+        <input type="number" id="score2" name="score2" min="0" required value="{{ request.form.score2 if request.form.score2 is not none else match.team2_score if match.team2_score is not none else '' }}">
+
+        <hr>
+        <h3>Eventos da Partida (Gols, Cartões)</h3>
+        <div id="match-events">
+            {# Eventos existentes serão carregados aqui se re-editando #}
+            {% for event in match.events %}
+                <div class="event-row">
+                    <select name="event_type_{{ loop.index0 }}">
+                        <option value="goal" {{ 'selected' if event.event_type == 'goal' }}>Gol</option>
+                        <option value="yellow_card" {{ 'selected' if event.event_type == 'yellow_card' }}>Cartão Amarelo</option>
+                        <option value="red_card" {{ 'selected' if event.event_type == 'red_card' }}>Cartão Vermelho</option>
+                    </select>
+                    <select name="player_id_{{ loop.index0 }}">
+                        <option value="">-- Selecione Jogador --</option>
+                        <optgroup label="{{ team1.name }}">
+                        {% for player in players_team1 %}
+                            <option value="{{ player.id }}" {{ 'selected' if event.player_id == player.id }}>{{ player.name }}</option>
+                        {% endfor %}
+                        </optgroup>
+                        <optgroup label="{{ team2.name }}">
+                        {% for player in players_team2 %}
+                            <option value="{{ player.id }}" {{ 'selected' if event.player_id == player.id }}>{{ player.name }}</option>
+                        {% endfor %}
+                        </optgroup>
+                    </select>
+                    <input type="text" name="minute_{{ loop.index0 }}" placeholder="Minuto (opcional)" value="{{ event.minute if event.minute is not none else '' }}" size="10">
+                    <button type="button" onclick="removeEvent(this)">Remover</button>
+                </div>
+            {% endfor %}
+        </div>
+        <input type="hidden" name="event_count" id="event_count" value="{{ match.events|length }}">
+        <button type="button" onclick="addEvent()">Adicionar Evento</button>
+
+        <hr>
+        <button type="submit">Registrar Resultado</button>
+    </form>
+
+    <a href="{{ url_for('routes.view_competition', competition_id=match.competition_id) }}" class="button-link secondary" style="margin-top: 15px;">Cancelar</a>
+
+<script>
+    let eventCounter = {{ match.events|length }};
+
+    function addEvent() {
+        const eventsDiv = document.getElementById('match-events');
+        const newEventRow = document.createElement('div');
+        newEventRow.classList.add('event-row');
+        
+        newEventRow.innerHTML = `
+            <select name="event_type_${eventCounter}">
+                <option value="goal">Gol</option>
+                <option value="yellow_card">Cartão Amarelo</option>
+                <option value="red_card">Cartão Vermelho</option>
+            </select>
+            <select name="player_id_${eventCounter}">
+                <option value="">-- Selecione Jogador --</option>
+                <optgroup label="{{ team1.name }}">
+                {% for player in players_team1 %}
+                    <option value="{{ player.id }}">{{ player.name }}</option>
+                {% endfor %}
+                </optgroup>
+                <optgroup label="{{ team2.name }}">
+                {% for player in players_team2 %}
+                    <option value="{{ player.id }}">{{ player.name }}</option>
+                {% endfor %}
+                </optgroup>
+            </select>
+            <input type="text" name="minute_${eventCounter}" placeholder="Minuto (opcional)" size="10">
+            <button type="button" onclick="removeEvent(this)">Remover</button>
+        `;
+        
+        eventsDiv.appendChild(newEventRow);
+        eventCounter++;
+        document.getElementById('event_count').value = eventCounter;
+    }
+
+    function removeEvent(button) {
+        const eventRow = button.parentNode;
+        eventRow.remove();
+        // Renumerar os campos restantes para evitar buracos nos índices enviados ao servidor
+        renumberEvents(); 
+    }
+    
+    function renumberEvents() {
+        const eventsDiv = document.getElementById('match-events');
+        const rows = eventsDiv.getElementsByClassName('event-row');
+        eventCounter = rows.length; // Reset counter based on current rows
+        for (let i = 0; i < rows.length; i++) {
+            const selects = rows[i].getElementsByTagName('select');
+            const inputs = rows[i].getElementsByTagName('input');
+            selects[0].name = `event_type_${i}`;
+            selects[1].name = `player_id_${i}`;
+            inputs[0].name = `minute_${i}`;
+        }
+         document.getElementById('event_count').value = eventCounter;
+    }
+
+    // Chamar renumberEvents no carregamento inicial caso haja eventos pré-carregados
+    // Isso garante que o eventCounter inicial esteja correto se a página for recarregada após um erro
+    document.addEventListener('DOMContentLoaded', function() {
+       renumberEvents(); 
+    });
+
+</script>
+
+{% endblock %}
+

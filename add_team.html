@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Adicionar Time - {{ competition.name }}{% endblock %}
+
+{% block content %}
+    <h1>Adicionar Time à Competição "{{ competition.name }}"</h1>
+    <form method="post">
+        <label for="team_name">Nome do Time:</label>
+        <input type="text" id="team_name" name="team_name" required>
+        <button type="submit">Adicionar Time</button>
+    </form>
+    <a href="{{ url_for('routes.view_competition', competition_id=competition.id) }}" class="button-link secondary" style="margin-top: 15px;">Cancelar</a>
+{% endblock %}
+

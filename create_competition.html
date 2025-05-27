@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Criar Nova Competição - {{ app_name }}{% endblock %}
+
+{% block content %}
+    <h1>Criar Nova Competição</h1>
+    <form method="post">
+        <label for="name">Nome da Competição:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="type">Modalidade:</label>
+        <select id="type" name="type" required>
+            <option value="futebol">Futebol</option>
+            <option value="futsal">Futsal</option>
+            <option value="fut7">Fut7</option>
+            <option value="suico">Futebol Suíço</option>
+        </select>
+
+        <label for="format">Formato:</label>
+        <select id="format" name="format" required>
+            <option value="groups_knockout">Grupos + Mata-Mata</option>
+            <option value="round_robin">Pontos Corridos (Turno Único)</option>
+            {# Adicionar opção para Turno e Returno se necessário no futuro #}
+        </select>
+
+        <button type="submit">Criar Competição</button>
+    </form>
+    <a href="{{ url_for("routes.index") }}" class="button-link secondary" style="margin-top: 15px;">Cancelar</a>
+{% endblock %}
+

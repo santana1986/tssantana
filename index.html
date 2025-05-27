@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Início - Gerenciador de Competições{% endblock %}
+
+{% block content %}
+    <h1>Competições Atuais</h1>
+    {% if competitions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Tipo</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for competition in competitions %}
+                    <tr>
+                        <td>{{ competition.name }}</td>
+                        <td>{{ competition.type }}</td>
+                        <td>{{ competition.status }}</td>
+                        <td>
+                            <a href="{{ url_for("routes.view_competition", competition_id=competition.id) }}" class="button-link">Ver</a>
+                            <!-- Adicionar links para editar/excluir se necessário -->
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Nenhuma competição criada ainda.</p>
+    {% endif %}
+    <a href="{{ url_for("routes.create_competition") }}" class="button-link">Criar Nova Competição</a>
+{% endblock %}
+

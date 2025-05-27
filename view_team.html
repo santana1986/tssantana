@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Time {{ team.name }} - {{ competition.name }}{% endblock %}
+
+{% block content %}
+    <a href="{{ url_for("routes.view_competition", competition_id=competition.id) }}" class="button-link secondary">&laquo; Voltar para Competição</a>
+    <h1>Time: {{ team.name }}</h1>
+    <h2>Competição: {{ competition.name }}</h2>
+
+    <hr>
+
+    <h3>Jogadores Inscritos</h3>
+    {% if players %}
+        <ul>
+            {% for player in players %}
+                <li>{{ player.name }}
+                   {# Adicionar links para editar/remover jogador se necessário #}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nenhum jogador inscrito neste time ainda.</p>
+    {% endif %}
+
+    {# Permitir adicionar jogadores mesmo com a competição em andamento? Decidido que sim por enquanto #}
+    {# {% if competition.status == 'planning' %} #}
+    <a href="{{ url_for("routes.add_player", competition_id=competition.id, team_id=team.id) }}" class="button-link">Adicionar Jogador</a>
+    {# {% endif %} #}
+
+{% endblock %}
+

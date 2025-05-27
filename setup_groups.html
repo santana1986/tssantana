@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Configurar Grupos - {{ competition.name }}{% endblock %}
+
+{% block content %}
+    <h1>Configurar Fase de Grupos - {{ competition.name }}</h1>
+    
+    <p>Total de times inscritos: {{ teams|length }}</p>
+    
+    <form method="post">
+        <label for="num_groups">Número de Grupos (1 a 16):</label>
+        <input type="number" id="num_groups" name="num_groups" min="1" max="16" required>
+        
+        {# TODO: Adicionar lógica mais complexa para definir times por grupo #}
+        {# Exemplo: permitir seleção manual, sorteio, etc. #}
+        {# Por enquanto, a lógica no backend fará uma distribuição simples ou apenas criará os grupos #}
+        <p><strong>Atenção:</strong> A distribuição de times nos grupos ainda precisa ser implementada ou feita manualmente após a criação dos grupos.</p>
+
+        <button type="submit">Criar Grupos e Gerar Partidas</button>
+    </form>
+
+    <h2>Times Disponíveis</h2>
+    {% if teams %}
+        <ul>
+            {% for team in teams %}
+                <li>{{ team.name }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nenhum time para distribuir.</p>
+    {% endif %}
+
+    <a href="{{ url_for("routes.view_competition", competition_id=competition.id) }}" class="button-link secondary" style="margin-top: 15px;">Cancelar</a>
+{% endblock %}
+

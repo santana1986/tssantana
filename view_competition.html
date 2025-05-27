@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}{{ competition.name }} - Detalhes{% endblock %}
+
+{% block content %}
+    <h1>{{ competition.name }} ({{ competition.type }})</h1>
+    <p>Status: {{ competition.status }}</p>
+
+    <hr>
+
+    <h2>Times Participantes</h2>
+    {% if teams %}
+        <ul>
+            {% for team in teams %}
+                <li>{{ team.name }} 
+                   <!-- Adicionar links para ver/editar time/jogadores -->
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nenhum time adicionado ainda.</p>
+    {% endif %}
+    {% if competition.status == 'planning' %}
+        <a href="{{ url_for('routes.add_team', competition_id=competition.id) }}" class="button-link">Adicionar Time</a>
+    {% endif %}
+
+    <hr>
+
+    <h2>Fase de Grupos</h2>
+    {% if competition.status == 'planning' and teams|length >= 2 %}
+         <a href="{{ url_for('routes.setup_groups', competition_id=competition.id) }}" class="button-link secondary">Configurar Grupos</a>
+    {% elif competition.status == 'group_stage' or competition.status == 'knockout' or competition.status == 'finished' %}
+        {% if groups %}
+            {% for group_id in groups %}
+                {% set group = data_storage['groups'].get(group_id) %}
+                {% if group %}
+                    <h3>{{ group.name }}</h3>
+                    {% if group.teams %}
+                        <h4>Classificação</h4>
+                        {% if group.standings %}
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Pos</th><th>Time</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {# Ordenar standings aqui - Exemplo simples por pontos, precisa de desempate #}
+                                {% set sorted_standings = group.standings.values()|sort(attribute='points', reverse=True) %}
+                                {% for standing in sorted_standings %}
+                                    {% set team = get_team(standing.team_id) %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ team.name if team else 'Time Desconhecido' }}</td>
+                                        <td>{{ standing.points }}</td>
+                                        <td>{{ standing.played }}</td>
+                                        <td>{{ standing.wins }}</td>
+                                        <td>{{ standing.draws }}</td>
+                                        <td>{{ standing.losses }}</td>
+                                        <td>{{ standing.goals_for }}</td>
+                                        <td>{{ standing.goals_against }}</td>
+                                        <td>{{ standing.goal_difference }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p>Nenhuma partida registrada ainda para calcular a classificação.</p>
+                        {% endif %}
+
+                        <h4>Partidas do Grupo</h4>
+                        <ul>
+                            {% for match_id in group.matches %}
+                                {% set match = data_storage['matches'].get(match_id) %}
+                                {% if match %}
+                                    {% set team1 = get_team(match.team1_id) %}
+                                    {% set team2 = get_team(match.team2_id) %}
+                                    <li>
+                                        {{ team1.name if team1 else '?' }} 
+                                        {% if match.status == 'finished' %}
+                                            {{ match.team1_score }} x {{ match.team2_score }}
+                                        {% else %}
+                                            vs
+                                        {% endif %}
+                                        {{ team2.name if team2 else '?' }}
+                                        {% if match.status == 'scheduled' %}
+                                            - <a href="{{ url_for('routes.record_match_result', match_id=match.id) }}" class="button-link secondary">Registrar Resultado</a>
+                                        {% endif %}
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>Nenhum time associado a este grupo ainda.</p>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% else %}
+             <p>Grupos ainda não configurados ou nenhuma partida gerada.</p>
+        {% endif %}
+    {% else %}
+        <p>Adicione pelo menos 2 times para poder configurar os grupos.</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Fase Eliminatória</h2>
+    {# TODO: Adicionar lógica e exibição da fase eliminatória #}
+    {% if competition.status == 'group_stage' %}
+        <p>A fase eliminatória será configurada após a conclusão da fase de grupos.</p>
+        {# Adicionar botão para iniciar fase eliminatória quando apropriado #}
+    {% elif competition.status == 'knockout' %}
+        <p>Exibição da chave eliminatória e partidas aqui.</p>
+         {# Exibir chave e partidas #}
+    {% elif competition.status == 'finished' %}
+        <p>Exibição da chave finalizada aqui.</p>
+    {% else %}
+        <p>A fase eliminatória ainda não começou.</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Estatísticas</h2>
+    {# TODO: Adicionar exibição de artilheiros, goleiros, cartões #}
+    <p>Estatísticas (Artilheiro, Goleiro Menos Vazado, Cartões) serão exibidas aqui.</p>
+
+    <hr>
+    <a href="{{ url_for('routes.index') }}" class="button-link secondary">Voltar para Lista de Competições</a>
+
+{% endblock %}
+

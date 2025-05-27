@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Adicionar Jogador - {{ team.name }}{% endblock %}
+
+{% block content %}
+    <a href="{{ url_for("routes.view_team", competition_id=competition.id, team_id=team.id) }}" class="button-link secondary">&laquo; Voltar para Time</a>
+    <h1>Adicionar Jogador ao Time "{{ team.name }}"</h1>
+    <h2>Competição: {{ competition.name }}</h2>
+
+    <form method="post">
+        <label for="player_name">Nome do Jogador:</label>
+        <input type="text" id="player_name" name="player_name" required>
+        <button type="submit">Adicionar Jogador</button>
+    </form>
+
+{% endblock %}
+
